@@ -38,6 +38,8 @@ CMAKE_DEPENDENT_OPTION(ENABLE_HLSL "Enables HLSL input support" ON "NOT ENABLE_G
 
 option(ENABLE_OPT "Enables spirv-opt capability if present" ON)
 
+option(ENABLE_GLSLANG_WEB "Reduces glslang to minumum needed for web use" OFF)
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND WIN32)
     set(CMAKE_INSTALL_PREFIX "install" CACHE STRING "..." FORCE)
 endif()
@@ -77,6 +79,10 @@ endif(ENABLE_NV_EXTENSIONS)
 if(ENABLE_HLSL)
     add_definitions(-DENABLE_HLSL)
 endif(ENABLE_HLSL)
+
+if(ENABLE_GLSLANG_WEB)
+    add_definitions(-DGLSLANG_WEB)
+endif(ENABLE_GLSLANG_WEB)
 
 if(WIN32)
     set(CMAKE_DEBUG_POSTFIX "d")
