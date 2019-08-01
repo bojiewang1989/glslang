@@ -221,7 +221,6 @@ enum TBuiltInVariable {
     EbvSampleMask,
     EbvHelperInvocation,
 
-#ifdef AMD_EXTENSIONS
     EbvBaryCoordNoPersp,
     EbvBaryCoordNoPerspCentroid,
     EbvBaryCoordNoPerspSample,
@@ -229,7 +228,6 @@ enum TBuiltInVariable {
     EbvBaryCoordSmoothCentroid,
     EbvBaryCoordSmoothSample,
     EbvBaryCoordPullModel,
-#endif
 
     EbvViewIndex,
     EbvDeviceIndex,
@@ -237,7 +235,6 @@ enum TBuiltInVariable {
     EbvFragSizeEXT,
     EbvFragInvocationCountEXT,
 
-#ifdef NV_EXTENSIONS
     EbvViewportMaskNV,
     EbvSecondaryPositionNV,
     EbvSecondaryViewportMaskNV,
@@ -273,7 +270,6 @@ enum TBuiltInVariable {
     EbvLayerPerViewNV,
     EbvMeshViewCountNV,
     EbvMeshViewIndicesNV,
-#endif
 
     // sm builtins
     EbvWarpsPerSM,
