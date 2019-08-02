@@ -441,7 +441,7 @@ spv::Decoration TGlslangToSpvTraverser::TranslateInterpolationDecoration(const g
     if (qualifier.smooth)
         // Smooth decoration doesn't exist in SPIR-V 1.0
         return spv::DecorationMax;
-    else if (qualifier.nopersp)
+    else if (qualifier.isNonPerspective())
         return spv::DecorationNoPerspective;
     else if (qualifier.flat)
         return spv::DecorationFlat;
@@ -984,7 +984,7 @@ spv::ImageFormat TGlslangToSpvTraverser::TranslateImageFormat(const glslang::TTy
     assert(type.getBasicType() == glslang::EbtSampler);
 
     // Check for capabilities
-    switch (type.getQualifier().layoutFormat) {
+    switch (type.getQualifier().getFormat()) {
     case glslang::ElfRg32f:
     case glslang::ElfRg16f:
     case glslang::ElfR11fG11fB10f:
@@ -1021,7 +1021,7 @@ spv::ImageFormat TGlslangToSpvTraverser::TranslateImageFormat(const glslang::TTy
     }
 
     // do the translation
-    switch (type.getQualifier().layoutFormat) {
+    switch (type.getQualifier().getFormat()) {
     case glslang::ElfNone:          return spv::ImageFormatUnknown;
     case glslang::ElfRgba32f:       return spv::ImageFormatRgba32f;
     case glslang::ElfRgba16f:       return spv::ImageFormatRgba16f;
@@ -1155,7 +1155,7 @@ spv::StorageClass TGlslangToSpvTraverser::TranslateStorageClass(const glslang::T
     }
 
     if (type.getQualifier().isUniformOrBuffer()) {
-        if (type.getQualifier().layoutPushConstant)
+        if (type.getQualifier().isPushConstant())
             return spv::StorageClassPushConstant;
         if (type.getBasicType() == glslang::EbtBlock)
             return spv::StorageClassUniform;
@@ -1230,10 +1230,8 @@ bool IsDescriptorResource(const glslang::TType& type)
     // uniform and buffer blocks are included, unless it is a push_constant
     if (type.getBasicType() == glslang::EbtBlock)
         return type.getQualifier().isUniformOrBuffer() &&
-#ifdef NV_EXTENSIONS
-        ! type.getQualifier().layoutShaderRecordNV &&
-#endif
-        ! type.getQualifier().layoutPushConstant;
+        ! type.getQualifier().isShaderRecordNV() &&
+        ! type.getQualifier().isPushConstant();
 
     // non block...
     // basically samplerXXX/subpass/sampler/texture are all included
@@ -1253,9 +1251,9 @@ void InheritQualifiers(glslang::TQualifier& child, const glslang::TQualifier& pa
 
     if (parent.invariant)
         child.invariant = true;
+#ifndef GLSLANG_WEB
     if (parent.nopersp)
         child.nopersp = true;
-#ifdef AMD_EXTENSIONS
     if (parent.explicitInterp)
         child.explicitInterp = true;
 #endif
@@ -7741,6 +7739,7 @@ spv::Id TGlslangToSpvTraverser::getSymbolId(const glslang::TIntermSymbol* symbol
     }
     if (symbol->getQualifier().hasAttachment())
         builder.addDecoration(id, spv::DecorationInputAttachmentIndex, symbol->getQualifier().layoutAttachment);
+#ifndef GLSLANG_WEB
     if (glslangIntermediate->getXfbMode()) {
         builder.addCapability(spv::CapabilityTransformFeedback);
         if (symbol->getQualifier().hasXfbBuffer()) {
@@ -7752,6 +7751,7 @@ spv::Id TGlslangToSpvTraverser::getSymbolId(const glslang::TIntermSymbol* symbol
         if (symbol->getQualifier().hasXfbOffset())
             builder.addDecoration(id, spv::DecorationOffset, symbol->getQualifier().layoutXfbOffset);
     }
+#endif
 
     if (symbol->getType().isImage()) {
         std::vector<spv::Decoration> memory;
