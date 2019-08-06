@@ -1800,7 +1800,7 @@ bool TGlslangToSpvTraverser::visitBinary(glslang::TVisit /* visit */, glslang::T
                 // Load through a block reference is performed with a dot operator that
                 // is mapped to EOpIndexDirectStruct. When we get to the actual reference,
                 // do a load and reset the access chain.
-                if (node->getLeft()->getBasicType() == glslang::EbtReference &&
+                if (node->getLeft()->isReference() &&
                     !node->getLeft()->getType().isArray() &&
                     node->getOp() == glslang::EOpIndexDirectStruct)
                 {
@@ -3558,7 +3558,7 @@ spv::Id TGlslangToSpvTraverser::convertGlslangStructToSpvType(const glslang::TTy
 
             // Make forward pointers for any pointer members, and create a list of members to
             // convert to spirv types after creating the struct.
-            if (glslangMember.getBasicType() == glslang::EbtReference) {
+            if (glslangMember.isReference()) {
                 if (forwardPointers.find(glslangMember.getReferentType()) == forwardPointers.end()) {
                     deferredForwardPointers.push_back(std::make_pair(&glslangMember, memberQualifier));
                 }
@@ -4091,7 +4091,7 @@ void TGlslangToSpvTraverser::makeFunctions(const glslang::TIntermSequence& glslF
         if (paramPrecision != spv::NoPrecision)
             decorations.push_back(paramPrecision);
         TranslateMemoryDecoration(type.getQualifier(), decorations, useVulkanMemoryModel);
-        if (type.getBasicType() == glslang::EbtReference) {
+        if (type.isReference()) {
             // Original and non-writable params pass the pointer directly and
             // use restrict/aliased, others are stored to a pointer in Function
             // memory and use RestrictPointer/AliasedPointer.
@@ -7815,7 +7815,7 @@ spv::Id TGlslangToSpvTraverser::getSymbolId(const glslang::TIntermSymbol* symbol
                               symbol->getType().getQualifier().semanticName);
     }
 
-    if (symbol->getBasicType() == glslang::EbtReference) {
+    if (symbol->isReference()) {
         builder.addDecoration(id, symbol->getType().getQualifier().restrict ? spv::DecorationRestrictPointerEXT : spv::DecorationAliasedPointerEXT);
     }
 

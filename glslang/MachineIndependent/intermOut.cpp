@@ -176,7 +176,7 @@ bool TOutputTraverser::visitBinary(TVisit /* visit */, TIntermBinary* node)
     case EOpIndexIndirect: out.debug << "indirect index"; break;
     case EOpIndexDirectStruct:
         {
-            bool reference = node->getLeft()->getType().getBasicType() == EbtReference;
+            bool reference = node->getLeft()->getType().isReference();
             const TTypeList *members = reference ? node->getLeft()->getType().getReferentType()->getStruct() : node->getLeft()->getType().getStruct();
             out.debug << (*members)[node->getRight()->getAsConstantUnion()->getConstArray()[0].getIConst()].type->getFieldName();
             out.debug << ": direct index for structure";      break;

@@ -554,8 +554,12 @@ public:
     }
     bool bufferReferenceNeedsVulkanMemoryModel() const
     {
+#ifdef GLSLANG_WEB
+        return false;
+#else
         // include qualifiers that map to load/store availability/visibility/nonprivate memory access operands
         return subgroupcoherent || workgroupcoherent || queuefamilycoherent || devicecoherent || coherent || nonprivate;
+#endif
     }
 
     bool isInterpolation() const
@@ -1594,7 +1598,13 @@ public:
     virtual bool isSubpass() const { return basicType == EbtSampler && getSampler().isSubpass(); }
     virtual bool isTexture() const { return basicType == EbtSampler && getSampler().isTexture(); }
     virtual bool isParameterized()  const { return typeParameters != nullptr; }
+#ifdef GLSLANG_WEB
+    virtual bool isCoopMat() const { return false; }
+    virtual bool isReference() const { return false; }
+#else
     virtual bool isCoopMat() const { return coopmat; }
+    virtual bool isReference() const { return getBasicType() == EbtReference; }
+#endif
 
     // return true if this type contains any subtype which satisfies the given predicate.
     template <typename P>
@@ -1675,20 +1685,29 @@ public:
         return contains([](const TType* t) { return t->isArray() && t->arraySizes->isOuterSpecialization(); } );
     }
 
+#ifdef GLSLANG_WEB
+    virtual bool contains16BitFloat() const { return false; }
+    virtual bool contains16BitInt() const { return false; }
+    virtual bool contains8BitInt() const { return false; }
+    virtual bool containsCoopMat() const { return false; }
+#else
+    virtual bool contains16BitFloat() const
+    {
+        return containsBasicType(EbtFloat16);
+    }
     virtual bool contains16BitInt() const
     {
         return containsBasicType(EbtInt16) || containsBasicType(EbtUint16);
     }
-
     virtual bool contains8BitInt() const
     {
         return containsBasicType(EbtInt8) || containsBasicType(EbtUint8);
     }
-
     virtual bool containsCoopMat() const
     {
         return contains([](const TType* t) { return t->coopmat; } );
     }
+#endif
 
     // Array editing methods.  Array descriptors can be shared across
     // type instances.  This allows all uses of the same array
@@ -2149,10 +2168,10 @@ public:
 
     bool sameReferenceType(const TType& right) const
     {
-        if ((basicType == EbtReference) != (right.basicType == EbtReference))
+        if (isReference() != right.isReference())
             return false;
 
-        if ((basicType != EbtReference) && (right.basicType != EbtReference))
+        if (!isReference() && !right.isReference())
             return true;
 
         assert(referentType != nullptr);

@@ -478,6 +478,8 @@ public:
     void addPushConstantCount() { ++numPushConstants; }
 #ifdef GLSLANG_WEB
     int getNumPushConstants() const { return 0; }
+    void addShaderRecordNVCount() { }
+    void addTaskNVCount() { }
 #else
     int getNumPushConstants() const { return numPushConstants; }
     void addShaderRecordNVCount() { ++numShaderRecordNVBlocks; }
@@ -794,6 +796,11 @@ public:
     const char* const implicitCounterName;
 
     // Certain explicit conversions are allowed conditionally
+#ifdef GLSLANG_WEB
+    bool getArithemeticInt8Enabled() const { return false; }
+    bool getArithemeticInt16Enabled() const { return false; }
+    bool getArithemeticFloat16Enabled() const { return false; }
+#else
     bool getArithemeticInt8Enabled() const {
         return extensionRequested(E_GL_EXT_shader_explicit_arithmetic_types) ||
                extensionRequested(E_GL_EXT_shader_explicit_arithmetic_types_int8);
@@ -809,6 +816,7 @@ public:
                extensionRequested(E_GL_AMD_gpu_shader_half_float) ||
                extensionRequested(E_GL_EXT_shader_explicit_arithmetic_types_float16);
     }
+#endif
 
 protected:
     TIntermSymbol* addSymbol(int Id, const TString&, const TType&, const TConstUnionArray&, TIntermTyped* subtree, const TSourceLoc&);
@@ -841,7 +849,15 @@ protected:
     bool isConversionAllowed(TOperator op, TIntermTyped* node) const;
     TIntermTyped* createConversion(TBasicType convertTo, TIntermTyped* node) const;
     std::tuple<TBasicType, TBasicType> getConversionDestinatonType(TBasicType type0, TBasicType type1, TOperator op) const;
+#ifdef GLSLANG_WEB
+    bool extensionRequested(const char *extension) const { return false; }
+#else
+    // I think this function should go away.
+    // This data structure is just a log to pass on to back ends.
+    // Versioning and extensions are handled in Version.cpp, with a rich
+    // set of functions for querying stages, versions, extension enable/disabled, etc.
     bool extensionRequested(const char *extension) const {return requestedExtensions.find(extension) != requestedExtensions.end();}
+#endif
     static const char* getResourceName(TResourceType);
 
     const EShLanguage language;  // stage, known at construction time

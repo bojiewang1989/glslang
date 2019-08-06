@@ -1690,7 +1690,7 @@ int TIntermediate::getBlockSize(const TType& blockType)
 
 int TIntermediate::computeBufferReferenceTypeSize(const TType& type)
 {
-    assert(type.getBasicType() == EbtReference);
+    assert(type.isReference());
     int size = getBlockSize(*type.getReferentType());
 
     int align = type.getBufferReferenceAlignment();
